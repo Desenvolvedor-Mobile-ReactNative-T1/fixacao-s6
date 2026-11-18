@@ -1,98 +1,94 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Botao } from "@/components/botao";
+import * as Haptics from "expo-haptics";
+import { Alert, Linking, Share, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+const NOME = "Matheus";
+const CARGO = "Mentor";
+const TELEFONE = "48998989898";
+const EMAIL = "matheusnadai@senai";
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
+
+  const abrir = async (url: string) => {
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(
+        "Não foi possível abrir",
+        "Nenhum aplicativo conseguiu abrir esse link.",
+      );
+    }
+  };
+
+  const compartilhar = async () => {
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      const resultado = await Share.share({
+        message: `${NOME} - ${CARGO} - ${TELEFONE} - ${EMAIL}`,
+      });
+      if (resultado.action === Share.sharedAction) {
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        );
+      }
+    } catch {
+      Alert.alert(
+        "Não foi possível compartilhar",
+        "O cartão não foi enviado.",
+      );
+    }
+  };
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <View style={[styles.container, { paddingTop: insets.top + 32 }]}>
+      <Text style={styles.nome}>{NOME}</Text>
+      <Text style={styles.cargo}>{CARGO}</Text>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      <Botao
+        titulo="📞 Ligar"
+        cor="#3C8C40"
+        onPress={() => abrir(`tel:+55${TELEFONE}`)}
+      />
+      <Botao
+        titulo="✉️ Mandar e-mail"
+        cor="#24292F"
+        onPress={() => abrir(`mailto:${EMAIL}`)}
+      />
+      <Botao
+        titulo="💬 WhatsApp"
+        cor="#2EBE4F"
+        onPress={() => abrir(`https://wa.me/55${TELEFONE}`)}
+      />
+      <Botao titulo="👤 Compartilhar" cor="#2F6FED" onPress={compartilhar} />
+      <Botao
+        titulo="📍 Como chegar"
+        cor="#5C6370"
+        onPress={() =>
+          abrir("https://maps.google.com/?q=SENAI+Florianopolis")
+        }
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 24,
+    gap: 12,
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+  nome: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#1F2328",
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  cargo: {
+    fontSize: 16,
+    color: "#6B7280",
+    marginBottom: 12,
   },
 });
